@@ -11,7 +11,6 @@
                 (;; Core Functionality
                  (:file "package")
                  (:file "command")
-                 (:file "mode")
                  (:file "document-mode"))))
   :build-operation "program-op"
   :build-pathname "next"

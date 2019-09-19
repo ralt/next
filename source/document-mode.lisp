@@ -3,6 +3,6 @@
   (:documentation "Mode for web pages"))
 (in-package :next/document-mode)
 
-(define-mode document-mode ()
-    "Base mode for interacting with documents."
-    ((link-hints :accessor link-hints)))
+(define-command foo ()
+  "Dummy"
+  nil)

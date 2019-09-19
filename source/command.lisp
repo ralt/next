@@ -3,6 +3,9 @@
 
 (in-package :next)
 
+;; TODO: compile-bundle-op works with eval-when?
+;; (eval-when (:compile-toplevel :load-toplevel :execute)
+;;   (export 'define-command))
 (export 'define-command)
 (defmacro define-command (name (&rest arglist) &body body)
   "Define new command NAME.
