@@ -193,13 +193,13 @@
          (push-url-at-point buffer (cl-webkit2:webkit-hit-test-result-media-uri hit-test-result)))))
 
 @export
-(defmethod ipc-window-make ((interface gtk-interface))
+(defun ipc-window-make ()
   "Make a window."
-  (let* ((window (make-instance 'gtk-window)))
-    (setf (gethash (id window) (windows interface)) window)
-    (unless (last-active-window interface)
-      (setf (last-active-window interface) window))
-    (next-hooks:run-hook (window-make-hook interface) window)
+  (let* ((window (make-instance *window-class*)))
+    (setf (gethash (id window) (windows *interface*)) window)
+    (unless (last-active-window *interface*)
+      (setf (last-active-window *interface*) window))
+    (next-hooks:run-hook (window-make-hook *interface*) window)
     window))
 
 @export

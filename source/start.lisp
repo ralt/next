@@ -171,7 +171,7 @@ EXPR must contain one single Lisp form. Use `progn' if needed."
    suitable as a `interface' `startup-function'."
   (when urls
     (open-urls urls))
-  (let ((window (ipc-window-make *interface*))
+  (let ((window (ipc-window-make))
         (buffer (help)))
     (window-set-active-buffer window buffer))
   (match (session-restore-function *interface*)
