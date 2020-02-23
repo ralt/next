@@ -23,7 +23,8 @@
 
 (defmethod kill-interface ((interface gtk-interface))
   (gtk:leave-gtk-main)
-  ;; TODO: Only quit when not connected to REPL.
+  ;; REVIEW: This does not seem necessary, Next quits properly both in the REPL
+  ;; and as a binary.
   ;; (uiop:quit 0 nil)
   )
 
