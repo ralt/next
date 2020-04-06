@@ -333,7 +333,7 @@ Otherwise go forward to the only child."
   "Open a new buffer displaying the whole history tree."
   (labels ((traverse (node current)
              (when node
-               `(:ul (:li (:a :href ,(url (htree:data node))
+               `(:ul :class "tree" (:li (:a :href ,(url (htree:data node))
                               ,(let ((title (or (match (title (htree:data node))
                                                   ((guard e (not (str:emptyp e))) e))
                                                 (url (htree:data node)))))
@@ -342,8 +342,37 @@ Otherwise go forward to the only child."
                                      title))))
                      ,@(match (mapcar (lambda (n) (traverse n current))
                                       (htree:children node))
-                        ((guard l l) l))))))
-    (let* ((buffer-name (format nil "*History-~a*" (id buffer)))
+                         ((guard l l) l))))))
+    (let* ((style (cl-css:css
+                   `((".tree, .tree ul"
+                      :list-style-type "none"
+                      :margin-left "0 0 0 10px"
+                      :padding 0
+                      :position "relative"
+                      :overflow "hidden")
+                     (".tree li"
+                      :margin 0
+                      :padding "0 12px"
+                      :position "relative")
+                     (".tree li::before, .tree li::after"
+                      :content "''"
+                      :position "absolute"
+                      :left 0)
+                     (".tree li::before"
+                      :border-top "1px solid #999"
+                      :top "10px"
+                      :width "10px"
+                      :height 0)
+                     (".tree li:after"
+                      :border-left "1px solid #999"
+                      :height "100%"
+                      :width "0px"
+                      :top "-10px")
+                     (".tree > li::after"
+                      :top "10px")
+                     (".tree > li:last-child::after"
+                      :display "none"))))
+           (buffer-name (format nil "*History-~a*" (id buffer)))
            (output-buffer (or (find-if (lambda (b) (string= buffer-name (title b)))
                                        (buffer-list))
                               (help-mode :activate t :buffer (make-buffer :title buffer-name))))
@@ -351,10 +380,12 @@ Otherwise go forward to the only child."
            (tree (traverse (htree:root history)
                            (htree:current history)))
            (content (markup:markup*
+                     `(:head (:style (cl-markup:raw ,style)))
                      '(:h1 "History")
                      tree))
            (insert-content (ps:ps (setf (ps:@ document Body |innerHTML|)
                                         (ps:lisp content)))))
+      (print content)
       (ffi-buffer-evaluate-javascript output-buffer insert-content)
       (set-current-buffer output-buffer))))
 
