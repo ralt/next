@@ -333,7 +333,7 @@ Otherwise go forward to the only child."
   "Open a new buffer displaying the whole history tree."
   (labels ((traverse (node current)
              (when node
-               `(:ul :class "tree" (:li (:a :href ,(url (htree:data node))
+               `(:ul (:li (:a :href ,(url (htree:data node))
                               ,(let ((title (or (match (title (htree:data node))
                                                   ((guard e (not (str:emptyp e))) e))
                                                 (url (htree:data node)))))
@@ -382,7 +382,7 @@ Otherwise go forward to the only child."
            (content (markup:markup*
                      `(:head (:style (cl-markup:raw ,style)))
                      '(:h1 "History")
-                     tree))
+                     `(:span :class "tree" ,tree)))
            (insert-content (ps:ps (setf (ps:@ document Body |innerHTML|)
                                         (ps:lisp content)))))
       (print content)
