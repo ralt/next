@@ -119,7 +119,8 @@ This should not rely on the minibuffer's content.")
                       :type boolean
                       :documentation "If non-nil, allow for selecting
                       multiple candidates.")
-   (completions :accessor completions :initform nil)
+   (completions :accessor completions :initform nil
+                :documentation "List of (display-value real-value) candidates.")
    (marked-completions :accessor marked-completions :initform nil)
    (show-completion-count :accessor show-completion-count
                           :initarg :show-completion-count :initform t
@@ -260,7 +261,7 @@ calls, such as invoking `minibuffer-history'."))
                (not (str:emptyp input-buffer)))
       ;; Don't add input-buffer to completions that don't accept arbitrary
       ;; inputs (i.e. empty-complete-immediate is nil).
-      (push input-buffer completions))))
+      (push (list input-buffer input-buffer) completions))))
 
 (defmethod (setf input-buffer) (value (minibuffer minibuffer))
   "Reset the minibuffer state on every input change.
@@ -348,13 +349,14 @@ calls, such as invoking `minibuffer-history'."))
       ((guard completions completions)
        ;; Note that "immediate input" is also in completions, so it's caught here.
        (setf completions
-             (mapcar (lambda (completion) (if (stringp completion)
-                                              (str:replace-all " " " " completion)
+             ;; TODO: Only loop over selected candidates.
+             (mapcar (lambda (completion) (if (stringp (second completion))
+                                              (list (first completion) (str:replace-all " " " " (second completion)))
                                               completion))
                      completions))
        (funcall-safely callback (if multi-selection-p
-                                    completions
-                                    (first completions))))
+                                    (mapcar #'second completions)
+                                    (second (first completions)))))
       (nil (when invisible-input-p
              (funcall-safely callback (str:replace-all " " " " input-buffer))))))
   (quit-minibuffer minibuffer))
@@ -669,7 +671,7 @@ The new webview HTML content it set as the MINIBUFFER's `content'."
                                              ((= i cursor-index) "selected")
                                              ((member completion (marked-completions minibuffer)) "marked")
                                              ((= i (completion-head minibuffer)) "head"))
-                                       (match (object-display completion)
+                                       (match (first completion)
                                          ((guard s (not (str:emptyp s))) s)
                                          (_ " ")))))))))
 
@@ -836,11 +838,11 @@ Return most recent entry in RING."
   (with-slots (completions completion-cursor)
       minibuffer
     (and completions
-         (object-string (nth completion-cursor completions)))))
+         (object-string (second (nth completion-cursor completions))))))
 
 (defmethod get-marked-candidates ((minibuffer minibuffer))
   "Return the list of strings for the marked candidate in the minibuffer."
-  (mapcar #'object-string (marked-completions minibuffer)))
+  (mapcar (alex:compose #'object-string #'second) (marked-completions minibuffer)))
 
 (define-command copy-candidate (&optional (minibuffer (current-minibuffer)))
   "Copy candidate to clipboard."

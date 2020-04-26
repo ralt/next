@@ -21,9 +21,10 @@
       (fuzzy-match input slots))))
 
 (defun command-completion-filter ()
-  (let ((commands (list-commands)))
+  (let* ((commands (list-commands))
+         (pretty-commands (mapcar #'command-display commands)))
     (lambda (input)
-      (fuzzy-match input commands))))
+      (fuzzy-match input commands :candidates-display pretty-commands))))
 
 (define-command describe-variable ()
   "Inspect a variable and show it in a help buffer."

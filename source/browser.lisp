@@ -283,7 +283,7 @@ The handlers take the buffer as argument.")))
                                         "-MODE")))
              (mapcar #'sym *command-list*)))
 
-(defun mode-command (mode-symbol)
+(defun mode-command (mode-symbol)       ; TODO: This fails to return commands for modes defined with define-configuration.
   "Return the mode toggle command.
 We loop over `*command-list*' to find the mode command since a mode may be
 defined in any package and is unique."

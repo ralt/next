@@ -168,6 +168,13 @@ and all (possibly unexported) symbols in USER-PACKAGE-DESIGNATORS."
         append (ignore-errors
                 (closer-mop:generic-function-methods (symbol-function sym)))))
 
+(defmethod mode-toggler-p ((command command))
+  "Return non-nil if COMMAND is a mode toggler.
+A mode toggler is a command of the same name as its associated mode."
+  (ignore-errors
+   (closer-mop:subclassp (find-class (sym command) nil)
+                         (find-class 'root-mode))))
+
 (defun list-commands (&rest mode-symbols)
   "List commands.
 Commands are instances of the `command' class.
@@ -175,13 +182,19 @@ When MODE-SYMBOLS are provided, list only the commands that belong to the
 corresponding mode packages.  Otherwise list all commands."
   (if mode-symbols
       (remove-if (lambda (c)
-                   (notany (lambda (m)
-                             (eq (pkg c)
-                                 (match m
-                                   ;; root-mode does not have a mode-command.
-                                   ('root-mode (find-package :next))
-                                   (_ (pkg (mode-command m))))))
-                           mode-symbols))
+                   (and (notany (lambda (m)
+                                 (eq (pkg c)
+                                     (symbol-package m)
+                                     ;; (match m
+                                     ;;   ;; root-mode does not have a mode-command.
+                                     ;;   ('root-mode (find-package :next))
+                                     ;;   (_ (match (mode-command m)
+                                     ;;        ((guard m m) (pkg m))
+                                     ;;        (_ (find-package :next)))))
+                                     ))
+                               mode-symbols)
+                        (or (not (mode-toggler-p c))
+                            (not (member 'fundamental-mode mode-symbols)))))
                  *command-list*)
       *command-list*))
 
@@ -193,14 +206,15 @@ corresponding mode packages.  Otherwise list all commands."
 very costly."
   (command-display command))
 
-(defun command-completion-filter ()
-  (let ((commands
-         (sort (apply #'list-commands (mapcar (alex:compose #'class-name #'class-of)
-                                              (modes (current-buffer))))
-               (lambda (c1 c2)
-                 (> (access-time c1) (access-time c2))))))
+(defun execute-completion-filter ()
+  (let* ((commands
+           (sort (apply #'list-commands (mapcar (alex:compose #'class-name #'class-of)
+                                                (modes (current-buffer))))
+                 (lambda (c1 c2)
+                   (> (access-time c1) (access-time c2)))))
+         (pretty-commands (mapcar #'command-display commands)))
     (lambda (input)
-      (fuzzy-match input commands))))
+      (fuzzy-match input commands :candidates-display pretty-commands))))
 
 (defmethod command-function ((command command))
   "Return the function associated to COMMAND.
@@ -209,7 +223,7 @@ This function can be `funcall'ed."
                     (string (sym command))
                     (pkg command))))
 
-(defmemo command-display (command)
+(defun command-display (command)
   ;; Use `(current-window :no-rescan)' or else the minibuffer will stutter
   ;; because of the RPC calls.
   (let* ((buffer (active-buffer (current-window :no-rescan)))
@@ -246,7 +260,7 @@ This function can be `funcall'ed."
   (with-result (command (read-from-minibuffer
                          (make-minibuffer
                           :input-prompt "Execute command"
-                          :completion-function (command-completion-filter)
+                          :completion-function (execute-completion-filter)
                           :show-completion-count nil)))
     (setf (access-time command) (get-internal-real-time))
     (run command)))
