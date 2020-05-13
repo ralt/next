@@ -130,8 +130,9 @@
 ;; produce the desired binary.
 
 (asdf:defsystem :next/gtk-application
+  :defsystem-depends-on (:deploy)
   :depends-on (:next/gtk)
-  :build-operation "program-op"
+  :build-operation "osx-app-deploy-op"
   :build-pathname "next"
   :entry-point "next:entry-point")
 
