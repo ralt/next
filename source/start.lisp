@@ -153,6 +153,8 @@ Example: --with-path bookmarks=/path/to/bookmarks"))
 (export-always 'entry-point)
 (defun entry-point ()
   "Read the CLI arguments and start the browser."
+  (setf (osicat:environment-variable "FONTCONFIG_PATH") "/opt/X11/lib/X11/fontconfig")
+  (setf (osicat:environment-variable "WEBKIT_EXEC_PATH") (uiop:native-namestring (osicat:current-directory)))
   (multiple-value-bind (options free-args)
       (parse-cli-args)
     (setf *keep-alive* nil)             ; Not a REPL.
