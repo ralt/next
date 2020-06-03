@@ -140,9 +140,29 @@
   :pathname "build-scripts/"
   :components ((:file "build-rpm")))
 
+(asdf:defsystem :next/build-package
+  :depends-on (:cffi-toolchain :cl-ppcre :next)
+  :pathname "build-scripts/"
+  :components ((:file "build-package")))
+
 (asdf:defsystem :next/gtk-application-rpm
-  :depends-on (:next/build-rpm :next/gtk)
-  :build-operation "build-rpm"
+  :depends-on (:next/build-package :next/gtk)
+  :build-operation "build-package"
+  :package-type "rpm"
+  :build-pathname "next"
+  :entry-point "next:entry-point")
+
+(asdf:defsystem :next/gtk-application-deb
+  :depends-on (:next/build-package :next/gtk)
+  :build-operation "build-package"
+  :package-type "deb"
+  :build-pathname "next"
+  :entry-point "next:entry-point")
+
+(asdf:defsystem :next/gtk-application-pacman
+  :depends-on (:next/build-package :next/gtk)
+  :build-operation "build-package"
+  :package-type "pacman"
   :build-pathname "next"
   :entry-point "next:entry-point")
 
